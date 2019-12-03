@@ -1,12 +1,26 @@
-#include <httplib.h>
-using namespace httplib;
+#include <chrono>
+#include <cstdlib>
+#include <thread>
+
+#include "httplib/httplib.h"
 
 int main(void) {
-  Server svr;
+    using namespace httplib;
+    using namespace std::chrono_literals;
 
-  svr.Get("/hi", [](const Request & /*req*/, Response &res) {
-    res.set_content("Hello World!", "text/plain");
-  });
+    Server svr;
 
-  svr.listen("localhost", 1234);
+    svr.Get("/hi", [](const Request & /*req*/, Response &res) {
+        res.set_content("Hello World!", "text/plain");
+    });
+
+    std::thread stop_thread([&svr]() {
+        std::this_thread::sleep_for(2s);
+        svr.stop();
+    });
+
+    svr.listen("localhost", 1234);
+    stop_thread.join();
+
+    return EXIT_SUCCESS;
 }
